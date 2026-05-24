@@ -1,0 +1,10 @@
+import { Router } from 'express';
+import { getAllAvailableFlights, getFlightSeatMap } from './src/controllers/flightController';
+
+const router = Router();
+
+// Expose flight browser vectors
+router.get('/', getAllAvailableFlights);
+router.get('/:flightId/seats', getFlightSeatMap);
+
+export default router;
