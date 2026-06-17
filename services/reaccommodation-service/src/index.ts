@@ -4,16 +4,12 @@ import dotenv from 'dotenv';
 import passengerRoutes from './routes/passengerRoutes';
 import adminRoutes from './routes/adminRoutes';
 import flightRoutes from './routes/flightRoutes';
-import { initializeDatabase } from './db/initDb'; // Ensure these are imported at the top
-import { seedMockData } from './db/seed';
-
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Enable Cross-Origin Resource Sharing for global web requests
 app.use(cors({
   origin: true,
   credentials: true,
@@ -33,7 +29,7 @@ app.get('/health', (req: Request, res: Response) => {
 });
 
 if (!process.env.VERCEL) {
-  app.listen(PORT, async () => {
+  app.listen(PORT, () => {
     console.log(`Server running locally on http://localhost:${PORT}`);
   });
 }

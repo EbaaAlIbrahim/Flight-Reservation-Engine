@@ -11,14 +11,6 @@
   ],
   "rewrites": [
     {
-      "source": "/api/:path*",
-      "destination": "src/index.ts"
-    },
-    {
-      "source": "/health",
-      "destination": "src/index.ts"
-    },
-    {
       "source": "/(.*)",
       "destination": "src/index.ts"
     }
