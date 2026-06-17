@@ -19,7 +19,8 @@ const PORT = process.env.PORT || 3000;
 app.use(cors({
   origin: [
     'http://localhost:5173', // Local Vite testing environment
-    'https://vercel.app' // Your exact production frontend URL
+    'https://flight-reservation-engine.vercel.app',
+    'https://flight-reservation-ui.vercel.app/',
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
