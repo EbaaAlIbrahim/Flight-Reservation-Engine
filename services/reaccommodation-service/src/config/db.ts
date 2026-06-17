@@ -3,20 +3,12 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
+// Enforce SSL connection requirements needed by Supabase in production cloud systems
 const pool = new Pool({
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  host: process.env.DB_HOST,
-  port: parseInt(process.env.DB_PORT || '5432'),
-  database: process.env.DB_NAME,
-});
-
-pool.on('connect', () => {
-  console.log('🐘 Connected to PostgreSQL Database');
-});
-
-pool.on('error', (err) => {
-  console.error('Unexpected PostgreSQL Client Error:', err);
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.DATABASE_URL?.includes('supabase.co') 
+    ? { rejectUnauthorized: false } 
+    : false
 });
 
 export default pool;
