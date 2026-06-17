@@ -3,10 +3,21 @@
   "builds": [
     {
       "src": "src/index.ts",
-      "use": "@vercel/node"
+      "use": "@vercel/node",
+      "config": {
+        "tsProgram": "tsconfig.json"
+      }
     }
   ],
   "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "src/index.ts"
+    },
+    {
+      "source": "/health",
+      "destination": "src/index.ts"
+    },
     {
       "source": "/(.*)",
       "destination": "src/index.ts"

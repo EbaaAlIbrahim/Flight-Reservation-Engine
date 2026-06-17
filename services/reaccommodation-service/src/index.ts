@@ -67,8 +67,10 @@ async function runEngineLifecycle() {
 }
 
 // Interceptor Middleware: Lazily executes initialization logic on-demand before running endpoint controllers
-app.use(async (req, res, next) => {
-  await runEngineLifecycle();
+app.use((req, res, next) => {
+  if (!engineInitialized) {
+    runEngineLifecycle().catch(console.error);
+  }
   next();
 });
 
