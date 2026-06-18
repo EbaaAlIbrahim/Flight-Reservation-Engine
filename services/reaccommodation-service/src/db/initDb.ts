@@ -1,6 +1,5 @@
-import fs from 'fs';
-import path from 'path';
 import pool from '../config/db';
+import { SCHEMA_SQL } from './schema'; // Import string definition directly
 
 export async function initializeDatabase() {
   try {
@@ -16,14 +15,12 @@ export async function initializeDatabase() {
     const tablesExist = tableCheck.rows[0].exists;
 
     if (tablesExist) {
-      console.log(' Database structures detected. Verifying structural columns and tables matrix paths...');
+      console.log(' Database structures detected. Verifying structural paths...');
       
-      // 1. Auto-patch the missing delay column if it doesn't exist
       await pool.query(`
         ALTER TABLE flights ADD COLUMN IF NOT EXISTS predicted_delay_minutes INT DEFAULT 0;
       `);
 
-      // 2. AUTOMATED FIX: Force create the passenger_notifications table dynamically on disk if missing
       await pool.query(`
         CREATE TABLE IF NOT EXISTS passenger_notifications (
             notification_id SERIAL PRIMARY KEY,
@@ -36,15 +33,13 @@ export async function initializeDatabase() {
         );
       `);
       
-      console.log(' Structure patch complete: "passenger_notifications" and delay parameters are verified live.');
       return false; 
     }
 
-    console.log(' Tables missing. Provisioning fresh relational data architecture arrays...');
-    const schemaPath = path.join(__dirname, 'schema.sql');
-    const sql = fs.readFileSync(schemaPath, 'utf8');
+    console.log(' Tables missing. Provisioning fresh relational data architecture arrays directly from string bundle...');
     
-    await pool.query(sql);
+    // Pass the pre-bundled schema string variable safely to pg pool
+    await pool.query(SCHEMA_SQL);
     console.log(' Relational flight disruption tables created successfully!');
     return true; 
   } catch (error) {

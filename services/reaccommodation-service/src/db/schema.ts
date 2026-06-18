@@ -1,6 +1,7 @@
+// services/reaccommodation-service/src/db/schema.ts
+export const SCHEMA_SQL = `
 -- Production Core Disruption & Booking Database Schema
 
--- 1. Create Enums safely using a DO block to prevent duplicate errors
 DO $$
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'tier_level') THEN
@@ -13,7 +14,6 @@ BEGIN
 END
 $$;
 
--- 2. Passengers Table
 CREATE TABLE IF NOT EXISTS passengers (
     passenger_id SERIAL PRIMARY KEY,
     first_name VARCHAR(50) NOT NULL,
@@ -24,7 +24,6 @@ CREATE TABLE IF NOT EXISTS passengers (
     lifetime_flights_booked INT DEFAULT 0
 );
 
--- 3. Flights Table 
 CREATE TABLE IF NOT EXISTS flights (
     flight_id SERIAL PRIMARY KEY,
     flight_number VARCHAR(10) UNIQUE NOT NULL,
@@ -41,7 +40,6 @@ CREATE TABLE IF NOT EXISTS flights (
     predicted_delay_minutes INT DEFAULT 0
 );
 
--- 4. Seats Inventory Tracking Layout
 CREATE TABLE IF NOT EXISTS seats (
     seat_id SERIAL PRIMARY KEY,
     flight_id INT REFERENCES flights(flight_id) ON DELETE CASCADE,
@@ -50,7 +48,6 @@ CREATE TABLE IF NOT EXISTS seats (
     UNIQUE(flight_id, seat_number)
 );
 
--- 5. Bookings Table
 CREATE TABLE IF NOT EXISTS bookings (
     booking_id SERIAL PRIMARY KEY,
     passenger_id INT REFERENCES passengers(passenger_id) ON DELETE CASCADE,
@@ -62,7 +59,6 @@ CREATE TABLE IF NOT EXISTS bookings (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- 6. Payments Invoice Records (Added back)
 CREATE TABLE IF NOT EXISTS payments (
     payment_id SERIAL PRIMARY KEY,
     booking_id INT REFERENCES bookings(booking_id) ON DELETE CASCADE,
@@ -71,7 +67,6 @@ CREATE TABLE IF NOT EXISTS payments (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- 7. Live Passenger Notification Broadcast Feed (Added back)
 CREATE TABLE IF NOT EXISTS passenger_notifications (
     notification_id SERIAL PRIMARY KEY,
     passenger_id INT REFERENCES passengers(passenger_id) ON DELETE CASCADE,
@@ -82,9 +77,8 @@ CREATE TABLE IF NOT EXISTS passenger_notifications (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- Create an active tracking registry for interconnected airports
 CREATE TABLE IF NOT EXISTS airports (
-    airport_code VARCHAR(3) PRIMARY KEY, -- e.g., 'JFK', 'LAX', 'EWR'
+    airport_code VARCHAR(3) PRIMARY KEY,
     airport_name VARCHAR(100) NOT NULL,
     current_visibility_miles DECIMAL(4,2) DEFAULT 10.00,
     current_wind_speed_knots INT DEFAULT 5,
@@ -93,10 +87,10 @@ CREATE TABLE IF NOT EXISTS airports (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- Seed baseline airport telemetry variables directly
 INSERT INTO airports (airport_code, airport_name, current_visibility_miles, current_wind_speed_knots, runway_closure_count, backlog_aircraft_count)
 VALUES 
-('JFK', 'John F. Kennedy International', 2.50, 28, 1, 18),  -- Severe winter weather profile
-('LAX', 'Los Angeles International', 10.00, 4, 0, 2),     -- Clear operations profile
-('EWR', 'Newark Liberty International', 4.00, 18, 0, 12)  -- Moderate congestion profile
+('JFK', 'John F. Kennedy International', 2.50, 28, 1, 18),
+('LAX', 'Los Angeles International', 10.00, 4, 0, 2),
+('EWR', 'Newark Liberty International', 4.00, 18, 0, 12)
 ON CONFLICT (airport_code) DO UPDATE SET updated_at = CURRENT_TIMESTAMP;
+`;
