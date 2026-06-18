@@ -7,18 +7,24 @@ interface MyBookingsViewProps {
 }
 
 export default function MyBookingsView({ userBookings, handleCancelBooking }: MyBookingsViewProps) {
+  // 🟢 FIX: Filter out cancelled or dropped records so they vanish immediately upon erasure
+  const activeTrips = userBookings.filter(
+    b => b.status !== 'CANCELLED' && b.status !== 'DROPPED'
+  );
+
   return (
     <div style={{ padding: '24px 0', color: '#ffffff' }}>
       <h2 style={{ fontSize: '22px', color: '#ffffff', marginBottom: '20px', fontWeight: '700', letterSpacing: '0.5px' }}>
         Your Active Flight Travel Profiles
       </h2>
-      {userBookings.length === 0 ? (
+      
+      {activeTrips.length === 0 ? (
         <div style={{ background: '#090d16', padding: '40px', borderRadius: '14px', textAlign: 'center', color: '#94a3b8', border: '1px solid #1e293b' }}>
           No active reservations logged. Select schedules to reserve a ticket.
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          {userBookings.map(b => (
+          {activeTrips.map(b => (
             <div key={b.booking_id} style={{ background: '#090d16', border: '1px solid #1e293b', padding: '24px', borderRadius: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <span style={{ fontSize: '11px', background: '#1e293b', color: '#38bdf8', padding: '4px 8px', borderRadius: '4px', fontWeight: 'bold', fontFamily: 'monospace' }}>

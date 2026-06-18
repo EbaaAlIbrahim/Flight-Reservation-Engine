@@ -127,7 +127,9 @@ export default function App() {
     }
   }, [view, user]);
 
-  const handleSignup = async (e: React.FormEvent) => {
+// --- App.tsx Content Fixes ---
+
+const handleSignup = async (e: React.FormEvent) => {
   e.preventDefault();
   try {
     const res = await fetch(`${API_BASE_URL}/api/passengers/register`, {
@@ -135,23 +137,25 @@ export default function App() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ firstName, lastName, email, password })
     });
-      const result = await res.json();
-      if (res.ok) {
-        setToastMessage(` Account Created for ${firstName}! Proceed to sign in.`);
-        setView('login');
-        setFirstName('');
-        setLastName('');
-        setEmail('');
-        setPassword('');
-      } else {
-        setToastMessage(` Registration Denied: ${result.error}`);
-      }
-    } catch {
-      setToastMessage(' Server connectivity breakdown.');
+    const result = await res.json();
+    
+    if (res.ok) {
+      setToastMessage(`🎉 Account Created for ${firstName}! Proceed to sign in.`);
+      setView('login');
+      setFirstName('');
+      setLastName('');
+      setEmail('');
+      setPassword('');
+    } else {
+      // 🟢 FIX: Correctly extract custom error message returned from the backend check
+      setToastMessage(`❌ Registration Denied: ${result.error || 'Duplicate profile credentials found.'}`);
     }
-  };
+  } catch {
+    setToastMessage('❌ Server connectivity breakdown.');
+  }
+};
 
-  const handleLogin = async (e: React.FormEvent) => {
+const handleLogin = async (e: React.FormEvent) => {
   e.preventDefault();
   try {
     const res = await fetch(`${API_BASE_URL}/api/passengers/login`, {
@@ -159,55 +163,63 @@ export default function App() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
     });
-      const result = await res.json();
-      if (res.ok && result.success) {
-        setUser(result.passenger);
-        setToastMessage(` Welcome back, ${result.passenger.name}! Loading schedules...`);
-        setView('flights');
-        setPassword('');
-      } else {
-        setToastMessage(` Authentication Failed: ${result.error}`);
-      }
-    } catch {
-      setToastMessage(' Server communication failed.');
+    const result = await res.json();
+    
+    if (res.ok && result.success) {
+      setUser(result.passenger);
+      setToastMessage(`🚀 Welcome back, ${result.passenger.name}! Loading schedules...`);
+      setView('flights');
+      setPassword('');
+    } else {
+      // 🟢 FIX: Read explicit response string for wrong combination profiles
+      setToastMessage(`❌ Authentication Failed: ${result.error || 'Wrong email or password configuration.'}`);
     }
-  };
+  } catch {
+    setToastMessage('❌ Server communication failed.');
+  }
+};
 
-  const handleLogOut = () => {
-    setUser(null);
-    setUserBookings([]);
-    setSelectedFlight(null);
-    setSelectedSeat(null);
-    setNotifications([]);
-    setToastMessage(' Logged out cleanly. Session closed.');
-    setView('login');
-  };
-
-  const handleCancelBooking = async (bookingId: number, flightNumber: string) => {
+const handleCancelBooking = async (bookingId: number, flightNumber: string) => {
   if (!user) return;
   if (confirm(`Are you certain you wish to cancel reservation seat on ${flightNumber}?`)) {
     try {
       const res = await fetch(`${API_BASE_URL}/api/passengers/${user.id}/trips/${bookingId}`, { method: 'DELETE' });
-        const result = await res.json();
-        if (res.ok && result.success) {
-          const cancelMsg = `Flight ${flightNumber} seat itinerary registration has been dissolved and payment reverted.`;
-          setToastMessage(` Cancellation Processed! ${cancelMsg}`);
-          setNotifications(prev => [{
-            id: Math.random().toString(),
-            title: 'Reservation Cancellation Notice',
-            timestamp: new Date().toLocaleTimeString(),
-            details: cancelMsg,
-            type: 'cancel'
-          }, ...prev]);
-          refreshPassengerTrips(user.id);
-        } else {
-          setToastMessage(` Cancellation Aborted: ${result.error}`);
-        }
-      } catch {
-        setToastMessage(' Error processing cancellation request.');
+      const result = await res.json();
+      if (res.ok && result.success) {
+        const cancelMsg = `Flight ${flightNumber} seat itinerary registration has been dissolved.`;
+        setToastMessage(`🗑️ Cancellation Processed! ${cancelMsg}`);
+        
+        // 🟢 FIX: Instant frontend filter to purge the canceled item from state array mapping instantly
+        setUserBookings(prev => prev.filter(b => b.booking_id !== bookingId));
+        
+        setNotifications(prev => [{
+          id: Math.random().toString(),
+          title: 'Reservation Cancellation Notice',
+          timestamp: new Date().toLocaleTimeString(),
+          details: cancelMsg,
+          type: 'cancel'
+        }, ...prev]);
+      } else {
+        setToastMessage(`❌ Cancellation Aborted: ${result.error}`);
       }
+    } catch {
+      setToastMessage('❌ Error processing cancellation request.');
     }
-  };
+  }
+};
+
+const handleLogOut = () => {
+  // 🟢 FIX: Standard window prompt fires cleanly before system state properties drop out
+  alert('ℹ️ Session closed securely. You have logged out cleanly from Apex Flight Systems.');
+  
+  setUser(null);
+  setUserBookings([]);
+  setSelectedFlight(null);
+  setSelectedSeat(null);
+  setNotifications([]);
+  setToastMessage('Logged out cleanly. Session closed.');
+  setView('login');
+};
 
    const executeSecureBooking = async () => {
   if (!user || !selectedFlight || !selectedSeat) return;
