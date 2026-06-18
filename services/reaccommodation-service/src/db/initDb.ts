@@ -1,5 +1,5 @@
 import pool from '../config/db';
-import { SCHEMA_SQL } from './schema'; // Import string definition directly
+import { SCHEMA_SQL } from './schema';
 
 export async function initializeDatabase() {
   try {
@@ -12,7 +12,7 @@ export async function initializeDatabase() {
       );
     `);
     
-    const tablesExist = tableCheck.rows[0].exists;
+    const tablesExist = tableCheck.rows.length > 0 && tableCheck.rows[0].exists;
 
     if (tablesExist) {
       console.log(' Database structures detected. Verifying structural paths...');
@@ -37,8 +37,6 @@ export async function initializeDatabase() {
     }
 
     console.log(' Tables missing. Provisioning fresh relational data architecture arrays directly from string bundle...');
-    
-    // Pass the pre-bundled schema string variable safely to pg pool
     await pool.query(SCHEMA_SQL);
     console.log(' Relational flight disruption tables created successfully!');
     return true; 

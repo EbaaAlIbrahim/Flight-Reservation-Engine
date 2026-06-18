@@ -1,6 +1,8 @@
 import { Router } from 'express';
-import { getPassengerDisruptionDetails, selectAlternativeFlight, getRealPassengerBookings, cancelRealPassengerBooking } from '../controllers/passengerController';
-import { registerPassenger, loginPassenger, deletePassengerAccount, getPassengerNotifications, deletePassengerNotification } from '../controllers/authController'; // Added new imports
+// 1. Remove the misplaced trip handlers from passengerController import:
+import { getPassengerDisruptionDetails, selectAlternativeFlight } from '../controllers/passengerController';
+// 2. Move those trip handlers into the authController import instead:
+import { registerPassenger, loginPassenger, deletePassengerAccount, getPassengerNotifications, deletePassengerNotification, getRealPassengerBookings, cancelRealPassengerBooking } from '../controllers/authController'; 
 import { createPassengerFlightBooking } from '../controllers/bookingController'; 
 
 const router = Router();
