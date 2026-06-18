@@ -3,26 +3,17 @@
   "builds": [
     {
       "src": "src/index.ts",
-      "use": "@vercel/node",
-      "config": {
-        "tsProgram": "tsconfig.json",
-        "includeFiles": [
-          "src/config/**",
-          "src/controllers/**",
-          "src/routes/**",
-          "src/db/**"
-        ]
-  }
-}
+      "use": "@vercel/node"
+    }
   ],
-  "rewrites": [
+  "routes": [
     {
-      "source": "/api/(.*)",
-      "destination": "src/index.ts"
+      "src": "/api/(.*)",
+      "dest": "src/index.ts"
     },
     {
-      "source": "/(.*)",
-      "destination": "src/index.ts"
+      "src": "/(.*)",
+      "dest": "src/index.ts"
     }
   ]
 }
