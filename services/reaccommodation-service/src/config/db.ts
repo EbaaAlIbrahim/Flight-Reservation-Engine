@@ -3,12 +3,12 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-// Break down your Supabase parameters explicitly to prevent @ parsing crashes
+// 🟢 IPv4-compatible proxy configuration for Vercel Serverless Functions
 const pool = new Pool({
-  user: 'postgres',
-  password: 'E11eqaa@eqaa', // Raw string handles special characters safely
-  host: 'db.zhrjtakyegbtvnrwycig.supabase.co',
-  port: 5432,
+  user: 'postgres.zhrjtakyegbtvnrwycig', // 🔵 Change: Append your project reference ID to the user name
+  password: 'E11eqaa@eqaa', 
+  host: 'aws-0-eu-central-1.pooler.supabase.com', // 🔵 Change: Target Supabase's high-speed IPv4 proxy gateway
+  port: 5432, // Connects cleanly via Session Mode
   database: 'postgres',
   ssl: {
     rejectUnauthorized: false
