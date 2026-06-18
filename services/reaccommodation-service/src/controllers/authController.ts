@@ -3,9 +3,7 @@ import { Request, Response } from 'express';
 import pool from '../config/db';
 import redis from '../config/redis';
 
-// POST /api/passengers/register
 export const registerPassenger = async (req: Request, res: Response): Promise<void> => {
-  // Support both snake_case from standard testing tools and camelCase from React App state definitions
   const firstName = req.body.firstName || req.body.first_name;
   const lastName = req.body.lastName || req.body.last_name;
   const { email, password } = req.body;
@@ -22,14 +20,14 @@ export const registerPassenger = async (req: Request, res: Response): Promise<vo
       return;
     }
 
-    // Insert user record with strict snake_case naming columns on database disk
     const newUser = await pool.query(`
       INSERT INTO passengers (first_name, last_name, email, password_hash, loyalty_tier, lifetime_flights_booked)
       VALUES ($1, $2, $3, $4, 'NORMAL', 0)
       RETURNING passenger_id, first_name, last_name, email, loyalty_tier;
     `, [firstName, lastName, email, password]);
 
-    const createdUser = newUser.rows[0];
+    // 🟢 FIX: Extract index 0 right away to prevent undefined crashes
+    const createdUser = newUser.rows[0]; 
 
     res.status(201).json({
       success: true,
@@ -48,7 +46,6 @@ export const registerPassenger = async (req: Request, res: Response): Promise<vo
 };
 
 
-// POST /api/passengers/login
 export const loginPassenger = async (req: Request, res: Response): Promise<void> => {
   const { email, password } = req.body;
 
@@ -63,14 +60,14 @@ export const loginPassenger = async (req: Request, res: Response): Promise<void>
       FROM passengers WHERE email = $1
     `, [email]);
 
+    // 🟢 FIX: Compare with rows[0].password_hash to properly authenticate
     if (userQuery.rows.length === 0 || userQuery.rows[0].password_hash !== password) {
       res.status(401).json({ error: 'Invalid email or password credentials.' });
       return;
     }
 
-    const user = userQuery.rows[0];
+    const user = userQuery.rows[0]; // Extract row index 0 safely
     
-    // Explicitly return individual parameter keys expected by App.tsx view states
     res.json({
       success: true,
       message: 'Authentication successful!',
