@@ -10,15 +10,11 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// MUST RUN FIRST: Allow both production UI and local machine testing
 app.use(cors({
-  origin: ['https://flight-reservation-ui.vercel.app', 'http://localhost:5173'],
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
+  origin: 'https://flight-reservation-ui.vercel.app',
+  credentials: true
 }));
 
-// Pre-flight handling
 app.options('*', cors());
 
 app.use(express.json());
