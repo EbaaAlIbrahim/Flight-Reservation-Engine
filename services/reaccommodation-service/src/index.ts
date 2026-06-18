@@ -10,36 +10,23 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-const allowedOrigins = [
-  'https://flight-reservation-ui.vercel.app',
-  'http://localhost:5173'
-]
-
+// MUST RUN FIRST: Allow both production UI and local machine testing
 app.use(cors({
-  origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps, curl, or postman)
-    if (!origin) return callback(null, true);
-    
-    if (allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Blocked by CORS policy Configuration'));
-    }
-  },
+  origin: ['https://flight-reservation-ui.vercel.app', 'http://localhost:5173'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
 }));
 
-// Explicitly handle preflight OPTIONS requests across all routes
+// Pre-flight handling
 app.options('*', cors());
 
 app.use(express.json());
 
-// Routes Master Mounting Points
-app.use('/passengers', passengerRoutes);
-app.use('/admin', adminRoutes);
-app.use('/flights', flightRoutes);
+// Routes Mounting Points
+app.use('/api/passengers', passengerRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/flights', flightRoutes);
 
 app.get('/health', (req: Request, res: Response) => {
   res.json({ status: 'UP', message: 'Aviation Re-accommodation Service is fully operational.' });

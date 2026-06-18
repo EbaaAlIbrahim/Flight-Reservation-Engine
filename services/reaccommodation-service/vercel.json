@@ -2,18 +2,14 @@
   "version": 2,
   "builds": [
     {
-      "src": "services/reaccommodation-service/src/index.ts",
+      "src": "src/index.ts",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
-      "src": "/api/(.*)",
-      "dest": "services/reaccommodation-service/src/index.ts"
-    },
-    {
       "src": "/(.*)",
-      "dest": "services/reaccommodation-service/src/index.ts"
+      "dest": "src/index.ts"
     }
   ]
 }
