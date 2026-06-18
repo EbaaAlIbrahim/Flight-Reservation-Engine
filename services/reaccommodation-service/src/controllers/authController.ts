@@ -93,13 +93,70 @@ export const getRealPassengerBookings = async (req: Request, res: Response): Pro
   } catch (error) { res.status(500).json({ error: 'Fetch failed' }); }
 };
 
+// DELETE /api/passengers/:passengerId/trips/:bookingId
 export const cancelRealPassengerBooking = async (req: Request, res: Response): Promise<void> => {
-  const { bookingId } = req.params;
+  // 🟢 FIXED: Match case-sensitivity parameters exactly as defined in passengerRoutes.ts
+  const { passengerId, bookingId } = req.params;
+
   try {
-    await pool.query('UPDATE bookings SET status = $1 WHERE booking_id = $2', ['CANCELLED', bookingId]);
-    res.json({ success: true });
-  } catch (error) { res.status(500).json({ error: 'Cancellation failed' }); }
+    await pool.query('BEGIN');
+
+    // 1. Find the flight and seat number to release
+    const bookingQuery = await pool.query(`
+      SELECT flight_id, seat_number, status FROM bookings 
+      WHERE booking_id = $1 AND passenger_id = $2 FOR UPDATE
+    `, [bookingId, passengerId]);
+
+    if (bookingQuery.rows.length === 0) {
+      await pool.query('ROLLBACK');
+      res.status(404).json({ error: 'Target reservation record not found.' });
+      return;
+    }
+
+    const { flight_id, seat_number, status } = bookingQuery.rows[0];
+
+    // 2. If it was confirmed/rerouted, free up the physical seat inventory
+    if (status !== 'CANCELLED') {
+      // Free seat configuration table matrix row cell
+      await pool.query(`
+        UPDATE seats SET is_booked = FALSE 
+        WHERE flight_id = $1 AND seat_number = $2
+      `, [flight_id, seat_number]);
+
+      // Return increment to flight capacity counter metrics
+      await pool.query(`
+        UPDATE flights SET available_seats = available_seats + 1 
+        WHERE flight_id = $1
+      `, [flight_id]);
+
+      // Sync the real-time cache value inside Upstash Redis instantly
+      const flightNumQuery = await pool.query('SELECT flight_number FROM flights WHERE flight_id = $1', [flight_id]);
+      if (flightNumQuery.rows.length > 0) {
+        // 🟢 FIXED: Safely read row array index 0 mapping parameters
+        const flightNum = flightNumQuery.rows[0].flight_number;
+        const currentCachedSeats = await redis.get(`flight:seats:${flightNum}`);
+        if (currentCachedSeats) {
+          const newCount = parseInt(String(currentCachedSeats), 10) + 1;
+          await redis.set(`flight:seats:${flightNum}`, String(newCount));
+        }
+      }
+    }
+
+    // 3. Instead of wiping history, update status flag to CANCELLED for logging validation audits
+    await pool.query(`
+      UPDATE bookings SET status = 'CANCELLED', updated_at = CURRENT_TIMESTAMP 
+      WHERE booking_id = $1
+    `, [bookingId]);
+
+    await pool.query('COMMIT');
+    res.json({ success: true, message: 'Reservation cancelled and seat inventory released successfully.' });
+  } catch (error) {
+    try { await pool.query('ROLLBACK'); } catch (e) { console.error('Rollback error:', e); }
+    console.error(' Cancellation error:', error);
+    res.status(500).json({ error: 'Failed to process self-service cancellation routine.' });
+  }
 };
+
 
 export const deletePassengerAccount = async (req: Request, res: Response): Promise<void> => {
   const { passengerId } = req.params;

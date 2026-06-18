@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import { Shield, AlertTriangle } from 'lucide-react';
 import type { NotificationMsg } from '../App';
+import { API_BASE_URL } from '../config'; // 🟢 Import your global API connection prefix URL string
 
 interface AdminViewProps {
   setNotifications: React.Dispatch<React.SetStateAction<NotificationMsg[]>>;
@@ -9,6 +11,8 @@ interface AdminViewProps {
 }
 
 export default function AdminView({ setNotifications, setToastMessage, loadFlightsAndTelemetry, setView }: AdminViewProps) {
+  const [loading, setLoading] = useState(false);
+
   return (
     <div style={{ padding: '24px 0', color: '#ffffff' }}>
       <div style={{ background: '#090d16', padding: '32px', borderRadius: '16px', border: '1px solid #1e293b', boxShadow: '0 4px 20px rgba(0,0,0,0.3)' }}>
@@ -26,41 +30,67 @@ export default function AdminView({ setNotifications, setToastMessage, loadFligh
             <AlertTriangle size={18} /> Predictive Analytics Module
           </h3>
           <p style={{ margin: '0 0 20px 0', fontSize: '14px', color: '#94a3b8', lineHeight: '1.6' }}>
-            Here an AI agent can predict the landing delay duration of the flight based on real-time operational circumstances.
+            Evaluate live weather circumstances and airfield congestion constraints to predict delay risks and update passenger timelines.
           </p>
 
-          <button onClick={() => {
-            const targetFlightCode = prompt("Enter the active Dubai flight number to evaluate:", "EK507") || "EK507";
-            fetch('http://localhost:8000/predict-delay', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ flight_number: targetFlightCode.toUpperCase() })
-            })
-            .then(res => res.json())
-            .then(data => {
-              if (data.status === 'SUCCESS') {
+          <button 
+            disabled={loading}
+            onClick={() => {
+              // 🟢 Default prompt updated to target your seeded flight numbers (e.g., AA102, UA405, DL889)
+              const targetFlightCode = prompt("Enter the active flight number to evaluate (e.g., AA102):", "AA102") || "AA102";
+              
+              setLoading(true);
+              setToastMessage('🧠 AI Core simulating airfield congestion matrices...');
+
+              // 🟢 FIXED: Target your Express deployment api base URL instead of localhost
+              fetch(`${API_BASE_URL}/api/flights/predict-delay`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                  flightNumber: targetFlightCode.toUpperCase().trim(),
+                  circumstances: {
+                    weatherCondition: 'SNOW', // Triggers +90 delay mins and elevated cancellation odds
+                    runwayBacklogCount: 12     // Triggers +60 compounding delay minutes
+                  }
+                })
+              })
+              .then(async (res) => {
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Server predictive model evaluation crash.');
+                return data;
+              })
+              .then(data => {
                 const delayAlert: NotificationMsg = {
                   id: Math.random().toString(),
-                  title: '🕒 ML Operational Notice Issued',
+                  title: '🕒 ML Operational Status Update',
                   timestamp: new Date().toLocaleTimeString(),
-                  details: `Machine learning analysis flags Flight ${data.flight_number}. Predicted delay duration is +${data.predicted_delay_duration_minutes} minutes (${data.calculated_cancellation_probability} cancellation probability risk).`,
+                  details: `AI Model analysis flags Flight ${data.flight_number}. Predicted delay duration is +${data.calculated_delay_minutes} minutes (${data.calculated_cancellation_probability} cancellation probability profile risk).`,
                   type: 'warning'
                 };
                 setNotifications(prev => [delayAlert, ...prev]);
-                setToastMessage(`🧠 ML Forest Model Complete! Flight ${data.flight_number} delay predicted at +${data.predicted_delay_duration_minutes} minutes. Registered passengers notified.`);
+                setToastMessage(`🧠 AI Analysis Complete! Flight ${data.flight_number} updated to +${data.calculated_delay_minutes} mins delay. Impacts saved to live Postgres schemas.`);
                 loadFlightsAndTelemetry();
                 setView('flights');
-              } else {
-                setToastMessage(`❌ Prediction Denied: ${data.detail || 'Processing fault.'}`);
-              }
-            })
-            .catch(() => {
-              setToastMessage('❌ Failed to establish communication with Python Data Science analytics cluster.');
-            });
-          }} 
-          style={{ background: '#f59e0b', color: '#090d16', border: 'none', padding: '12px 24px', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer', fontSize: '13.5px' }}
+              })
+              .catch((err) => {
+                setToastMessage(`❌ Prediction Fault: ${err.message}`);
+              })
+              .finally(() => {
+                setLoading(false);
+              });
+            }} 
+            style={{ 
+              background: loading ? '#4b5563' : '#f59e0b', 
+              color: '#090d16', 
+              border: 'none', 
+              padding: '12px 24px', 
+              borderRadius: '6px', 
+              fontWeight: 'bold', 
+              cursor: loading ? 'not-allowed' : 'pointer', 
+              fontSize: '14px' 
+            }}
           >
-            Flight Delay Predictor
+            {loading ? 'Evaluating Core Vectors...' : 'Run Disruption Prediction'}
           </button>
         </div>
       </div>
