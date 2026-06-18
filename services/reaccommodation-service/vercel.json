@@ -8,18 +8,6 @@
   ],
   "rewrites": [
     {
-      "source": "/api/passengers/(.*)",
-      "destination": "src/index.ts"
-    },
-    {
-      "source": "/api/admin/(.*)",
-      "destination": "src/index.ts"
-    },
-    {
-      "source": "/api/flights/(.*)",
-      "destination": "src/index.ts"
-    },
-    {
       "source": "/(.*)",
       "destination": "src/index.ts"
     }

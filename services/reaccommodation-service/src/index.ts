@@ -20,9 +20,9 @@ app.use(cors({
 app.use(express.json());
 
 // Routes Master Mounting Points
-app.use('/api/passengers', passengerRoutes);
-app.use('/api/admin', adminRoutes);
-app.use('/api/flights', flightRoutes);
+app.use('/passengers', passengerRoutes);
+app.use('/admin', adminRoutes);
+app.use('/flights', flightRoutes);
 
 app.get('/health', (req: Request, res: Response) => {
   res.json({ status: 'UP', message: 'Aviation Re-accommodation Service is fully operational.' });
