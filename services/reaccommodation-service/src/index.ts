@@ -11,11 +11,11 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(cors({
-  origin: 'https://flight-reservation-engine.vercel.app',
+  origin: 'https://flight-reservation-ui.vercel.app',
   credentials: true
 }));
 
-app.options('*', cors());
+app.options('/*path', cors()); 
 app.use(express.json());
 
 // Routes Mounting Points
