@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Plane, Bell, Trash2, LogOut } from 'lucide-react';
+import { API_BASE_URL } from './config';
 
 // View Component Imports
 import Login from './components/Login';
@@ -77,8 +78,8 @@ export default function App() {
   }, [toastMessage]);
 
   const loadFlightsAndTelemetry = async () => {
-    try {
-      const res = await fetch('/api/flights');
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/flights`);
       if (res.ok) {
         const data = await res.json();
         setFlights(data);
@@ -108,8 +109,8 @@ export default function App() {
   };
 
   const refreshPassengerTrips = async (id: number) => {
-    try {
-      const res = await fetch(`/api/passengers/${id}/trips`);
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/passengers/${id}/trips`);
       if (res.ok) {
         const data = await res.json();
         setUserBookings(data);
@@ -127,13 +128,13 @@ export default function App() {
   }, [view, user]);
 
   const handleSignup = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const res = await fetch('/api/passengers/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ firstName, lastName, email, password })
-      });
+  e.preventDefault();
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/passengers/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ firstName, lastName, email, password })
+    });
       const result = await res.json();
       if (res.ok) {
         setToastMessage(` Account Created for ${firstName}! Proceed to sign in.`);
@@ -151,13 +152,13 @@ export default function App() {
   };
 
   const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const res = await fetch('/api/passengers/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
+  e.preventDefault();
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/passengers/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
       const result = await res.json();
       if (res.ok && result.success) {
         setUser(result.passenger);
@@ -183,10 +184,10 @@ export default function App() {
   };
 
   const handleCancelBooking = async (bookingId: number, flightNumber: string) => {
-    if (!user) return;
-    if (confirm(`Are you certain you wish to cancel reservation seat on ${flightNumber}?`)) {
-      try {
-        const res = await fetch(`/api/passengers/${user.id}/trips/${bookingId}`, { method: 'DELETE' });
+  if (!user) return;
+  if (confirm(`Are you certain you wish to cancel reservation seat on ${flightNumber}?`)) {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/passengers/${user.id}/trips/${bookingId}`, { method: 'DELETE' });
         const result = await res.json();
         if (res.ok && result.success) {
           const cancelMsg = `Flight ${flightNumber} seat itinerary registration has been dissolved and payment reverted.`;
@@ -208,15 +209,15 @@ export default function App() {
     }
   };
 
-    const executeSecureBooking = async () => {
-    if (!user || !selectedFlight || !selectedSeat) return;
-    setPaymentLoading(true);
-    try {
-      const res = await fetch('/api/flights/book', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ passengerId: user.id, flightId: selectedFlight.flight_id, seatNumber: selectedSeat })
-      });
+   const executeSecureBooking = async () => {
+  if (!user || !selectedFlight || !selectedSeat) return;
+  setPaymentLoading(true);
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/flights/book`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ passengerId: user.id, flightId: selectedFlight.flight_id, seatNumber: selectedSeat })
+    });
       const result = await res.json();
       if (res.ok && result.success) {
         const confirmMsg = `Ticket issued for Seat ${selectedSeat} on Flight ${selectedFlight.flight_number}. Total Fare Paid: $249.00.`;
@@ -240,11 +241,11 @@ export default function App() {
     }
   };
 
-  const handleDeleteAccount = async () => {
-    if (!user) return;
-    if (confirm(' CRITICAL WARNING: Deleting your account will permanently wipe your frequent flyer profile, loyalty tiers, and cancel all bookings. Proceed?')) {
-      try {
-        const res = await fetch(`/api/passengers/${user.id}`, { method: 'DELETE' });
+ const handleDeleteAccount = async () => {
+  if (!user) return;
+  if (confirm('Proceed?')) {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/passengers/${user.id}`, { method: 'DELETE' });
         if (res.ok) {
           alert('Profile permanently deleted from flight database registers.');
           handleLogOut();
@@ -258,10 +259,10 @@ export default function App() {
   };
 
   const openSeatPicker = async (flight: Flight) => {
-    setSelectedFlight(flight);
-    setSelectedSeat(null);
-    try {
-      const res = await fetch(`/api/flights/${flight.flight_id}/seats`);
+  setSelectedFlight(flight);
+  setSelectedSeat(null);
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/flights/${flight.flight_id}/seats`);
       if (res.ok) {
         const data = await res.json();
         setSeats(data.seats);
