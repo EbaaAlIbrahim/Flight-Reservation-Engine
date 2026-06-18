@@ -1,4 +1,4 @@
-import { useState,useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 interface SignupProps {
   firstName: string;
@@ -11,6 +11,7 @@ interface SignupProps {
   setPassword: (val: string) => void;
   handleSignup: (e: React.FormEvent) => Promise<void>;
   setView: (view: 'login' | 'signup' | 'flights' | 'my-bookings' | 'notifications' | 'seats' | 'admin') => void;
+  toastMessage: string;
 }
 
 export default function Signup({
@@ -24,9 +25,10 @@ export default function Signup({
   setPassword,
   handleSignup,
   setView,
+  toastMessage,
 }: SignupProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-    const [activeRadarIndex, setActiveRadarIndex] = useState(0);
+  const [activeRadarIndex, setActiveRadarIndex] = useState(0);
 
   useEffect(() => {
     const radarInterval = setInterval(() => {
@@ -37,25 +39,25 @@ export default function Signup({
 
   const radarDataPool = [
     { id: 'APX102 / JFK', alt: '28,000 FT', lat: '40.6413 N', lon: '-73.7781 W' },
-    { id: 'UA405 / EWR',  alt: '31,500 FT', lat: '40.6895 N', lon: '-74.1745 W' },
-    { id: 'DL889 / LAX',  alt: '34,000 FT', lat: '33.9416 N', lon: '-118.4085 W' },
-    { id: 'EY710 / DXB',  alt: '36,000 FT', lat: '25.2532 N', lon: '55.3657 E' },
-    { id: 'QR283 / HND',  alt: '38,000 FT', lat: '35.5494 N', lon: '139.7798 E' },
-    { id: 'EK842 / CDG',  alt: '39,000 FT', lat: '49.0097 N', lon: '2.5479 E' },
-    { id: 'FZ659 / SIN',  alt: '35,000 FT', lat: '1.3644 N',  lon: '103.9915 E' },
+    { id: 'UA405 / EWR', alt: '31,500 FT', lat: '40.6895 N', lon: '-74.1745 W' },
+    { id: 'DL889 / LAX', alt: '34,000 FT', lat: '33.9416 N', lon: '-118.4085 W' },
+    { id: 'EY710 / DXB', alt: '36,000 FT', lat: '25.2532 N', lon: '55.3657 E' },
+    { id: 'QR283 / HND', alt: '38,000 FT', lat: '35.5494 N', lon: '139.7798 E' },
+    { id: 'EK842 / CDG', alt: '39,000 FT', lat: '49.0097 N', lon: '2.5479 E' },
+    { id: 'FZ659 / SIN', alt: '35,000 FT', lat: '1.3644 N', lon: '103.9915 E' },
     { id: 'BAW229 / LHR', alt: '41,000 FT', lat: '51.4700 N', lon: '-0.4543 W' }
   ];
 
   const currentPlane = radarDataPool[activeRadarIndex];
 
-    useEffect(() => {
+  useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
     let animationFrameId: number;
-    
+
     const resizeCanvas = () => {
       canvas.width = canvas.parentElement?.clientWidth || window.innerWidth * 0.55;
       canvas.height = canvas.parentElement?.clientHeight || window.innerHeight;
@@ -69,19 +71,19 @@ export default function Signup({
     const planes = [
       // Orbit 1 (Smallest): 1 Plane
       { cx: centerX, cy: centerY, rx: 90, ry: 45, angle: 0, speed: 0.006, label: 'APX102 / JFK', color: '#38bdf8' },
-      
+
       // Orbit 2: 2 Planes (Staggered angles)
       { cx: centerX, cy: centerY, rx: 150, ry: 75, angle: 0, speed: 0.005, label: 'UA405 / EWR', color: '#10b981' },
       { cx: centerX, cy: centerY, rx: 150, ry: 75, angle: Math.PI, speed: 0.005, label: 'DL889 / LAX', color: '#10b981' },
-      
+
       // Orbit 3: 3 Planes
       { cx: centerX, cy: centerY, rx: 220, ry: 110, angle: 0, speed: 0.004, label: 'EY710 / DXB', color: '#f59e0b' },
       { cx: centerX, cy: centerY, rx: 220, ry: 110, angle: (Math.PI * 2) / 3, speed: 0.004, label: 'QR283 / HND', color: '#f59e0b' },
       { cx: centerX, cy: centerY, rx: 220, ry: 110, angle: (Math.PI * 4) / 3, speed: 0.004, label: 'EK842 / CDG', color: '#f59e0b' },
-      
+
       // Orbit 4: 1 Plane
       { cx: centerX, cy: centerY, rx: 300, ry: 150, angle: Math.PI * 0.5, speed: 0.003, label: 'FZ659 / SIN', color: '#a855f7' },
-      
+
       // Orbit 5 (Largest): 1 Plane
       { cx: centerX, cy: centerY, rx: 380, ry: 190, angle: Math.PI * 1.5, speed: 0.002, label: 'BAW229 / LHR', color: '#ec4899' }
     ];
@@ -91,7 +93,7 @@ export default function Signup({
       gc.translate(x, y);
       gc.rotate(angle);
       gc.fillStyle = color;
-      
+
       gc.beginPath();
       gc.moveTo(0, -10);
       gc.lineTo(3, -3);
@@ -133,7 +135,7 @@ export default function Signup({
         { rx: 300, ry: 150 },
         { rx: 380, ry: 190 }
       ];
-      
+
       uniqueRadii.forEach(orbit => {
         ctx.beginPath();
         ctx.ellipse(centerX, centerY, orbit.rx, orbit.ry, 0, 0, Math.PI * 2);
@@ -170,7 +172,7 @@ export default function Signup({
   }, []);
 
 
-    return (
+  return (
     <div style={{
       width: '100vw',
       marginLeft: 'calc(-50vw + 50%)',
@@ -184,7 +186,7 @@ export default function Signup({
       boxSizing: 'border-box',
       overflowX: 'hidden'
     }}>
-      
+
       {/* Top Application Header Bar */}
       <nav style={{
         display: 'flex',
@@ -202,8 +204,8 @@ export default function Signup({
           <span style={{ color: '#94a3b8', cursor: 'pointer' }}>Pricing</span>
           <span style={{ color: '#94a3b8', cursor: 'pointer' }}>Documentation</span>
           <span style={{ color: '#94a3b8', cursor: 'pointer' }}>FAQ</span>
-          <button 
-            onClick={() => setView('login')} 
+          <button
+            onClick={() => setView('login')}
             style={{ backgroundColor: 'transparent', color: '#94a3b8', border: '1px solid #334155', padding: '10px 20px', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}
           >
             Log In
@@ -213,35 +215,35 @@ export default function Signup({
 
       {/* Main Container Workspace Split Grid Layout */}
       <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', flexGrow: 1, width: '100%' }}>
-        
+
         {/* Left Orbital Canvas Panel Section */}
         <div style={{ backgroundColor: '#090d16', borderRight: '1px solid #1e293b', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: '40px', position: 'relative' }}>
           <canvas ref={canvasRef} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', zIndex: 0, pointerEvents: 'none' }} />
-          
-                   {/* Live Telemetry Data Box Panel - Positioned Lower with 3-Second Variable Rotation */}
-          <div style={{ 
-            background: 'rgba(12, 16, 29, 0.75)', 
-            backdropFilter: 'blur(8px)', 
-            border: '1px solid #1e293b', 
-            borderRadius: '8px', 
-            padding: '24px', 
+
+          {/* Live Telemetry Data Box Panel - Positioned Lower with 3-Second Variable Rotation */}
+          <div style={{
+            background: 'rgba(12, 16, 29, 0.75)',
+            backdropFilter: 'blur(8px)',
+            border: '1px solid #1e293b',
+            borderRadius: '8px',
+            padding: '24px',
             width: '100%',
-            maxWidth: '440px', 
-            fontFamily: 'monospace', 
-            position: 'absolute', 
-            bottom: '24px',  
+            maxWidth: '440px',
+            fontFamily: 'monospace',
+            position: 'absolute',
+            bottom: '24px',
             left: '40px',
             zIndex: 5,
             boxSizing: 'border-box'
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #1e293b', paddingBottom: '12px', marginBottom: '12px' }}>
               <span style={{ color: '#10b981', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ animation: 'radarPulseFade 1.5s infinite', marginRight: '4px' }}>●</span> 
+                <span style={{ animation: 'radarPulseFade 1.5s infinite', marginRight: '4px' }}>●</span>
                 LIVE TELEMETRY RADAR
               </span>
               <span style={{ color: '#64748b' }}>FREQ: 1090 MHz</span>
             </div>
-            
+
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '13px' }}>
               <div>IDENTIFIER: <strong style={{ color: '#fff' }}>{currentPlane.id}</strong></div>
               <div>ALTITUDE: <strong style={{ color: '#f59e0b' }}>{currentPlane.alt}</strong></div>
@@ -266,6 +268,11 @@ export default function Signup({
           <div style={{ maxWidth: '400px', width: '100%' }}>
 
             <form onSubmit={handleSignup} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              {toastMessage && toastMessage.includes('Registration Denied') && (
+                <div style={{ background: '#2c1a12', border: '1px solid #ef4444', color: '#ef4444', padding: '12px', borderRadius: '4px', fontSize: '13.5px', fontWeight: 'bold', marginBottom: '16px' }}>
+                  {toastMessage.replace('Registration Denied:', '')}
+                </div>
+              )}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '11px', color: '#94a3b8', marginBottom: '6px', fontWeight: '600', textTransform: 'uppercase' }}>First Name</label>

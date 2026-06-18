@@ -9,14 +9,16 @@ export const registerPassenger = async (req: Request, res: Response): Promise<vo
   const { email, password } = req.body;
 
   if (!firstName || !lastName || !email || !password) {
-    res.status(400).json({ error: 'All fields are required to register.' });
+    // 🟢 MODIFIED: Added prefix string for frontend catch blocks
+    res.status(400).json({ error: 'Registration Denied: All fields are required to register.' });
     return;
   }
 
   try {
     const userCheck = await pool.query('SELECT passenger_id FROM passengers WHERE email = $1', [email]);
     if (userCheck.rows.length > 0) {
-      res.status(409).json({ error: 'An account with this email already exists.' });
+      // 🟢 MODIFIED: Added prefix string for duplicate profile verification
+      res.status(409).json({ error: 'Registration Denied: An account with this email already exists.' });
       return;
     }
 
@@ -26,7 +28,6 @@ export const registerPassenger = async (req: Request, res: Response): Promise<vo
       RETURNING passenger_id, first_name, last_name, email, loyalty_tier;
     `, [firstName, lastName, email, password]);
 
-    // 🟢 FIX: Extract index 0 right away to prevent undefined crashes
     const createdUser = newUser.rows[0]; 
 
     res.status(201).json({
@@ -41,7 +42,7 @@ export const registerPassenger = async (req: Request, res: Response): Promise<vo
     });
   } catch (error) {
     console.error(' Registration error:', error);
-    res.status(500).json({ error: 'Internal registration processing failure.' });
+    res.status(500).json({ error: 'Registration Denied: Internal registration processing failure.' });
   }
 };
 
@@ -50,7 +51,7 @@ export const loginPassenger = async (req: Request, res: Response): Promise<void>
   const { email, password } = req.body;
 
   if (!email || !password) {
-    res.status(400).json({ error: 'Email and password are required.' });
+    res.status(400).json({ error: 'Authentication Failed: Email and password are required.' });
     return;
   }
 
@@ -60,13 +61,13 @@ export const loginPassenger = async (req: Request, res: Response): Promise<void>
       FROM passengers WHERE email = $1
     `, [email]);
 
-    // 🟢 FIX: Compare with rows[0].password_hash to properly authenticate
+    // 🟢 MODIFIED: Added specific descriptive prefix messages to match frontend components filter requirements
     if (userQuery.rows.length === 0 || userQuery.rows[0].password_hash !== password) {
-      res.status(401).json({ error: 'Invalid email or password credentials.' });
+      res.status(401).json({ error: 'Authentication Failed: Invalid email or password credentials.' });
       return;
     }
 
-    const user = userQuery.rows[0]; // Extract row index 0 safely
+    const user = userQuery.rows[0]; 
     
     res.json({
       success: true,
@@ -80,7 +81,7 @@ export const loginPassenger = async (req: Request, res: Response): Promise<void>
     });
   } catch (error) {
     console.error(' Login error:', error);
-    res.status(500).json({ error: 'Internal login processing failure.' });
+    res.status(500).json({ error: 'Authentication Failed: Internal login processing failure.' });
   }
 };
 
@@ -93,15 +94,13 @@ export const getRealPassengerBookings = async (req: Request, res: Response): Pro
   } catch (error) { res.status(500).json({ error: 'Fetch failed' }); }
 };
 
-// DELETE /api/passengers/:passengerId/trips/:bookingId
+
 export const cancelRealPassengerBooking = async (req: Request, res: Response): Promise<void> => {
-  // 🟢 FIXED: Match case-sensitivity parameters exactly as defined in passengerRoutes.ts
   const { passengerId, bookingId } = req.params;
 
   try {
     await pool.query('BEGIN');
 
-    // 1. Find the flight and seat number to release
     const bookingQuery = await pool.query(`
       SELECT flight_id, seat_number, status FROM bookings 
       WHERE booking_id = $1 AND passenger_id = $2 FOR UPDATE
@@ -115,24 +114,19 @@ export const cancelRealPassengerBooking = async (req: Request, res: Response): P
 
     const { flight_id, seat_number, status } = bookingQuery.rows[0];
 
-    // 2. If it was confirmed/rerouted, free up the physical seat inventory
     if (status !== 'CANCELLED') {
-      // Free seat configuration table matrix row cell
       await pool.query(`
         UPDATE seats SET is_booked = FALSE 
         WHERE flight_id = $1 AND seat_number = $2
       `, [flight_id, seat_number]);
 
-      // Return increment to flight capacity counter metrics
       await pool.query(`
         UPDATE flights SET available_seats = available_seats + 1 
         WHERE flight_id = $1
       `, [flight_id]);
 
-      // Sync the real-time cache value inside Upstash Redis instantly
       const flightNumQuery = await pool.query('SELECT flight_number FROM flights WHERE flight_id = $1', [flight_id]);
       if (flightNumQuery.rows.length > 0) {
-        // 🟢 FIXED: Safely read row array index 0 mapping parameters
         const flightNum = flightNumQuery.rows[0].flight_number;
         const currentCachedSeats = await redis.get(`flight:seats:${flightNum}`);
         if (currentCachedSeats) {
@@ -142,7 +136,6 @@ export const cancelRealPassengerBooking = async (req: Request, res: Response): P
       }
     }
 
-    // 3. Instead of wiping history, update status flag to CANCELLED for logging validation audits
     await pool.query(`
       UPDATE bookings SET status = 'CANCELLED', updated_at = CURRENT_TIMESTAMP 
       WHERE booking_id = $1
@@ -181,4 +174,3 @@ export const deletePassengerNotification = async (req: Request, res: Response): 
     res.json({ success: true });
   } catch (error) { res.status(500).json({ error: 'Deletion failed' }); }
 };
-

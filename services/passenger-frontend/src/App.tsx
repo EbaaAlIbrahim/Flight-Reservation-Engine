@@ -401,10 +401,10 @@ const handleLogOut = () => {
 
           {/* Component Views Router Switch Tree */}
           {view === 'login' && (
-            <Login email={email} setEmail={setEmail} password={password} setPassword={setPassword} handleLogin={handleLogin} setView={setView} />
+            <Login email={email} setEmail={setEmail} password={password} setPassword={setPassword} handleLogin={handleLogin} setView={setView} toastMessage={toastMessage}/>
           )}
           {view === 'signup' && (
-            <Signup firstName={firstName} setFirstName={setFirstName} lastName={lastName} setLastName={setLastName} email={email} setEmail={setEmail} password={password} setPassword={setPassword} handleSignup={handleSignup} setView={setView} />
+            <Signup firstName={firstName} setFirstName={setFirstName} lastName={lastName} setLastName={setLastName} email={email} setEmail={setEmail} password={password} setPassword={setPassword} handleSignup={handleSignup} setView={setView} toastMessage={toastMessage}/>
           )}
           {view === 'flights' && (
             <FlightsView flights={flights} flightWarnings={flightWarnings} openSeatPicker={openSeatPicker} />
