@@ -11,7 +11,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(cors({
-  origin: 'https://flight-reservation-ui.vercel.app',
+  origin: 'https://vercel.app',
   credentials: true
 }));
 
